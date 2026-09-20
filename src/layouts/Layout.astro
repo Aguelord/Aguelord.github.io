@@ -1,0 +1,13 @@
+---
+import '../styles/global.css';
+import {href} from '../lib/projects';
+const {title = 'L’atelier d’Adrien', description = 'Code, recherche, musique et expériences personnelles. Un laboratoire en mouvement.'} = Astro.props;
+---
+<!doctype html>
+<html lang="fr"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width"/><meta name="description" content={description}/><meta name="theme-color" content="#f4f1e9"/><title>{title}</title></head>
+<body><a class="skip" href="#main">Aller au contenu</a>
+<header class="shell"><a class="brand" href={href()}><span class="logo">a<span>↗</span></span> Adrien<span class="brand-sub"> / atelier personnel</span></a><nav aria-label="Navigation principale"><a href={href('#collection')}>Les projets</a><a href={href('studio/')}>Studio</a><a href={href('carnets/')}>Carnets</a><a href="https://github.com/Aguelord">GitHub ↗</a></nav></header>
+<main id="main" class="shell"><slot/></main>
+<footer class="shell"><span>Un laboratoire personnel, en mouvement.</span><span>Code · Recherche · Musique · Création</span></footer>
+</body></html>
+<style>@media(max-width:600px){header{height:auto;min-height:105px;flex-wrap:wrap;gap:14px;padding-top:16px!important;padding-bottom:16px!important}nav{width:100%;justify-content:space-between;gap:10px}}</style>

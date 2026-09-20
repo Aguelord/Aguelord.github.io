@@ -1,0 +1,70 @@
+---
+import Layout from '../layouts/Layout.astro';
+import music from '../data/music.json';
+---
+<Layout title="Le studio — L’atelier d’Adrien" description="Les compositions personnelles d’Adrien Vet. Une autre pièce de l’atelier, à écouter sur Spotify.">
+<section class="studio-intro"><p class="eyebrow">LE DEUXIÈME TIROIR / MUSIQUE</p><h1>Les idées prennent<br/><em>une autre forme.</em></h1><p class="intro">Mes compositions personnelles, réunies sous le nom de {music.artist}. Bienvenue dans la partie sonore de l’atelier.</p></section>
+<section class="listening-room" aria-labelledby="listening-title"><div><p class="eyebrow">À L’ÉCOUTE</p><h2 id="listening-title">{music.artist}</h2><p class="listening-copy">Un moment pour quitter les lignes de code et entrer dans le son.</p><a class="text-button" href={music.spotifyUrl}>Retrouver mes compositions sur Spotify ↗</a></div>
+<div class="player-space"><div id="player-placeholder"><div class="sound-lines" aria-hidden="true">▂ ▄ ▆ █ ▅ ▃ ▇ ▄ ▂ ▅ ▇ ▃ ▂</div><button id="load-spotify" class="button" hidden aria-controls="spotify-player">Charger le lecteur Spotify <span aria-hidden="true">↗</span></button><p class="player-notice">Le lecteur se connecte à Spotify uniquement à votre demande. Aucune lecture automatique.</p><noscript><p><a href={music.spotifyUrl}>Écouter sur Spotify</a></p></noscript></div>
+<div id="spotify-stage" hidden><div id="spotify-loading" role="status"><span class="loading-symbol" aria-hidden="true">◌</span><p>Connexion à Spotify…</p><small>Le lecteur peut prendre quelques secondes à apparaître.</small></div><div id="spotify-player" data-embed-url={music.embedUrl}></div></div>
+<p id="player-status" class="player-notice" role="status"></p>
+<button id="retry-spotify" class="text-button" hidden>Réessayer le chargement ↻</button>
+<p class="player-notice">Si le lecteur ne s’affiche pas, utilisez le lien Spotify. L’écoute disponible dépend de Spotify et de votre connexion à ce service.</p></div></section>
+</Layout>
+<script>
+const button = document.querySelector<HTMLButtonElement>('#load-spotify')!;
+const retry = document.querySelector<HTMLButtonElement>('#retry-spotify')!;
+const host = document.querySelector<HTMLElement>('#spotify-player')!;
+const stage = document.querySelector<HTMLElement>('#spotify-stage')!;
+const loading = document.querySelector<HTMLElement>('#spotify-loading')!;
+const status = document.querySelector<HTMLElement>('#player-status')!;
+let timer: ReturnType<typeof setTimeout>;
+let attempt = 0;
+button.hidden = false;
+function loadPlayer() {
+ const current = ++attempt;
+ clearTimeout(timer);
+ host.replaceChildren();
+ stage.hidden = false;
+ loading.hidden = false;
+ host.style.visibility = 'hidden';
+ host.setAttribute('aria-busy', 'true');
+ retry.hidden = true;
+ status.textContent = '';
+ document.querySelector<HTMLElement>('#player-placeholder')!.hidden = true;
+ const frame = document.createElement('iframe');
+ frame.title = 'Spotify : compositions d’Adrien Vet';
+ frame.width = '100%'; frame.height = '352';
+ frame.allow = 'autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture';
+ frame.allowFullscreen = true;
+ const fail = () => {
+  if (current !== attempt) return;
+  clearTimeout(timer);
+  frame.remove();
+  stage.hidden = true;
+  host.setAttribute('aria-busy', 'false');
+  retry.hidden = false;
+  status.textContent = 'Spotify ne répond pas pour le moment. Vous pouvez réessayer ou écouter directement sur Spotify avec le lien ci-dessus.';
+  retry.focus({preventScroll:true});
+ };
+ frame.addEventListener('load', () => {
+  if (current !== attempt || !frame.isConnected) return;
+  clearTimeout(timer);
+  loading.hidden = true;
+  host.style.visibility = 'visible';
+  host.setAttribute('aria-busy', 'false');
+  retry.hidden = false;
+  status.textContent = 'Si le lecteur reste vide ou affiche une erreur, réessayez ou ouvrez Spotify directement.';
+ }, {once:true});
+ frame.addEventListener('error', fail, {once:true});
+ frame.src = host.dataset.embedUrl!;
+ timer = setTimeout(fail, 15000);
+ host.append(frame);
+}
+button.addEventListener('click', loadPlayer);
+retry.addEventListener('click', loadPlayer);
+</script>
+<style>
+#spotify-stage{position:relative;min-height:352px}#spotify-loading{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;border:1px dashed #aebba5;background:#eaece0}#spotify-loading p{margin:15px 0 8px}#spotify-loading small{line-height:1.7;color:#596358}.loading-symbol{font-size:42px;color:var(--accent);animation:turn 2s linear infinite}@keyframes turn{to{transform:rotate(360deg)}}@media(prefers-reduced-motion:reduce){.loading-symbol{animation:none}}
+.studio-intro{padding:72px 0 45px}.listening-room{display:grid;grid-template-columns:1fr 1.3fr;gap:45px;border-top:1px solid var(--line);padding:40px 0 80px;align-items:start}.listening-copy{line-height:1.8;color:#596358;max-width:300px}.player-space{min-width:0;padding:24px;background:#eaece0;border:1px solid var(--line)}#player-placeholder{min-height:260px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}.sound-lines{font-size:clamp(19px,3vw,35px);color:var(--accent);letter-spacing:3px}.player-notice{font-size:12px;line-height:1.7;color:#596358}.player-space :global(iframe){display:block;border:0;border-radius:12px}@media(max-width:800px){.listening-room{grid-template-columns:1fr;gap:25px}.studio-intro{padding-top:45px}.player-space{padding:14px}}
+</style>

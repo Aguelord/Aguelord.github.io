@@ -1,0 +1,28 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { carnets } from '../../lib/carnets';
+import { href, date } from '../../lib/projects';
+---
+<Layout title="Carnets — L’atelier d’Adrien" description="Notes de recherche, essais et fragments de réflexion : la partie écrite de l’atelier.">
+<section class="carnet-heading"><p class="eyebrow">LE TROISIÈME TIROIR / ÉCRITURE</p><h1>Des pensées<br/><em>qui font leur chemin.</em></h1><p class="intro">Notes de recherche, essais personnels et fragments. Un espace pour suivre une idée, la mettre à l’épreuve et lui laisser le temps de prendre forme.</p></section>
+<section class="carnet-list" aria-labelledby="texts-title"><div class="section-head"><h2 id="texts-title">Au fil des pages</h2><span class="muted">{carnets.length} texte{carnets.length > 1 ? 's' : ''}</span></div>
+<div class="carnet-filters" hidden role="group" aria-label="Filtrer les carnets">{['Tous','Recherche','Réflexions'].map(category => <button type="button" data-category={category} aria-pressed={category === 'Tous'}>{category}</button>)}</div>
+{carnets.map(c => <article class="text-entry" data-category={c.category}><p class="eyebrow">{c.category} · {c.format} · {c.status}</p><h2><a href={href(`carnets/${c.slug}/`)}>{c.title}</a></h2><p>{c.excerpt}</p><span class="muted">{c.dateLabel || date(c.date)}</span>{c.ai && <p class="muted">{c.ai}</p>}</article>)}
+<div id="carnets-empty" class="empty-notebook" hidden={carnets.length > 0}><span aria-hidden="true">01 —</span><h2>La première page reste à écrire.</h2><p>Les textes que je choisirai de partager trouveront leur place ici.</p></div>
+<p id="carnets-count" class="muted" aria-live="polite"></p>
+</section>
+</Layout>
+<script>
+const group = document.querySelector<HTMLElement>('.carnet-filters')!;
+group.hidden = false;
+const entries = [...document.querySelectorAll<HTMLElement>('.text-entry')];
+group.querySelectorAll('button').forEach(button => button.addEventListener('click', () => {
+ group.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));
+ entries.forEach(entry=>entry.hidden = button.dataset.category !== 'Tous' && entry.dataset.category !== button.dataset.category);
+ const count = entries.filter(entry=>!entry.hidden).length;
+ document.querySelector('#carnets-count')!.textContent = count ? `${count} texte${count>1?'s':''}` : (entries.length ? 'Aucun texte dans cette catégorie pour le moment.' : '');
+}));
+</script>
+<style>
+.carnet-heading{padding:72px 0 48px}.carnet-list{padding-bottom:70px}.carnet-filters{display:flex;gap:10px;margin:28px 0;flex-wrap:wrap}.carnet-filters button{background:transparent;border:1px solid var(--line);padding:10px 16px;color:inherit;font-size:13px}.carnet-filters button[aria-pressed=true]{background:#293e32;color:white;border-color:#293e32}.text-entry{padding:32px 0;border-bottom:1px solid var(--line);max-width:800px}.text-entry .eyebrow{margin-bottom:12px}.text-entry p:not(.eyebrow){line-height:1.8;color:#596358;max-width:680px}.text-entry time{font:11px Consolas,monospace;color:#647160}.empty-notebook{margin-top:30px;padding:45px 30px;border-left:2px solid var(--accent);background:repeating-linear-gradient(transparent,transparent 31px,#d6d9cc66 32px);max-width:800px}.empty-notebook>span{display:block;font:12px Consolas,monospace;color:var(--accent);margin-bottom:25px}.empty-notebook p{line-height:1.8;color:#596358}.empty-notebook h2{font-size:27px}@media(max-width:520px){.carnet-heading{padding-top:42px}.empty-notebook{padding:25px 20px}}
+</style>

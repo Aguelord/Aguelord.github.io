@@ -1,0 +1,40 @@
+---
+import Layout from '../layouts/Layout.astro';
+import {projects, projectHref, syncedAt, date, href} from '../lib/projects';
+const languages = [...new Set(projects.map(p=>p.language).filter(Boolean))].sort();
+---
+<Layout>
+<section class="hero"><div><p class="eyebrow"><span class="dot"></span> LABORATOIRE HYBRIDE / 001</p><h1>Des idées.<br/>Des essais.<br/><em>Et ce qui en naît.</em></h1><p class="intro">Bienvenue dans mon atelier. Un endroit pour réunir ce que je code, ce que je cherche et ce que j’imagine — et découvrir les liens entre tout ça.</p><a class="button" href="#collection">Ouvrir les tiroirs <span>↗</span></a></div>
+<div class="specimen" aria-hidden="true"><span class="spec-label">FIG. 01 — TERRAIN D’EXPLORATION</span><svg viewBox="0 0 400 330"><g fill="none" stroke="currentColor" stroke-width="1"><circle cx="200" cy="165" r="110"/><ellipse cx="200" cy="165" rx="160" ry="65" transform="rotate(-35 200 165)"/><ellipse cx="200" cy="165" rx="155" ry="65" transform="rotate(35 200 165)"/><path d="M200 35V295M40 165H360" stroke-dasharray="3 7"/></g><g fill="#be532d"><circle cx="200" cy="165" r="11"/><circle cx="107" cy="107" r="6"/><circle cx="296" cy="218" r="6"/></g><g fill="currentColor" font-size="12" font-family="monospace"><text x="213" y="150">CURIOSITÉ</text><text x="44" y="94">CODE</text><text x="265" y="250">CRÉATION</text><text x="240" y="55">RECHERCHE</text></g></svg><p>Observer. Fabriquer. Relier. Recommencer.</p></div></section>
+<section id="collection"><div class="section-head"><div><p class="eyebrow">LE PREMIER TIROIR</p><h2>Les projets informatiques<span class="count">{projects.length}</span></h2></div><button id="random" class="text-button" hidden>Au hasard ↗</button></div>
+<div id="controls" class="controls" hidden><label class="search">Chercher une pièce<input id="search" type="search" placeholder="Un nom, une idée, une technologie…"/></label><label>Technologie<select id="language"><option value="">Toutes les technologies</option>{languages.map(l=><option>{l}</option>)}</select></label></div>
+<p id="result-count" class="muted" aria-live="polite"></p>
+<div class="grid">{projects.map((p,index)=><article class="card" data-search={`${p.title} ${p.description} ${p.topics.join(' ')}`.toLowerCase()} data-language={p.language || ''}><div class="card-top"><span>PIÈCE {String(index+1).padStart(3,'0')}</span><span>{p.status}</span></div><h3><a href={projectHref(p.id)}>{p.title}</a></h3><p>{p.description || 'Une pièce de l’atelier à découvrir dans son dépôt.'}</p><div class="card-bottom"><span>{p.language || 'Exploration'}{p.fork ? ' · Fork' : ''}</span><span aria-hidden="true">↗</span></div></article>)}</div>
+{!projects.length && <p>Aucun projet importé pour le moment. Le catalogue apparaîtra après la première synchronisation GitHub.</p>}
+<p id="empty" hidden>Aucun projet ne correspond à cette recherche.</p>
+{syncedAt && <p class="sync">Catalogue mis à jour le {date(syncedAt)} · Données publiques de GitHub</p>}
+</section>
+<div class="closing-grid">
+<aside class="closing"><p class="eyebrow">LE STUDIO / COMPOSITIONS PERSONNELLES</p><h2>Tout ne tient pas<br/>dans un dépôt.</h2><p>Il y a aussi les idées qui prennent la forme d’un morceau. Retrouvez mes compositions dans la partie sonore de l’atelier.</p><a class="button" href={href('studio/')}>Entrer dans le studio <span>↗</span></a></aside>
+<aside class="closing"><p class="eyebrow">LES CARNETS / ÉCRITURE</p><h2>Des pensées qui<br/>font leur chemin.</h2><p>Notes de recherche, essais et fragments. Un troisième tiroir pour ce qui se pense avant, pendant ou après le code.</p><a class="button" href={href('carnets/')}>Ouvrir les carnets <span>↗</span></a></aside>
+</div>
+</Layout>
+<script>
+const controls = document.querySelector<HTMLElement>('#controls')!;
+controls.hidden = false;
+const search = document.querySelector<HTMLInputElement>('#search')!;
+const language = document.querySelector<HTMLSelectElement>('#language')!;
+const cards = [...document.querySelectorAll<HTMLElement>('.card')];
+const filter = () => {
+ const query = search.value.toLocaleLowerCase().trim();
+ cards.forEach(c=> c.hidden = !(c.dataset.search!.includes(query) && (!language.value || c.dataset.language === language.value)));
+ const count = cards.filter(c=>!c.hidden).length;
+ document.querySelector('#result-count')!.textContent = `${count} pièce${count > 1 ? 's' : ''}`;
+ document.querySelector<HTMLElement>('#empty')!.hidden = count > 0;
+};
+search.addEventListener('input',filter); language.addEventListener('change',filter);
+const random = document.querySelector<HTMLButtonElement>('#random')!;
+random.hidden = cards.length === 0;
+random.addEventListener('click',()=>{const visible = cards.filter(c=>!c.hidden); if(visible.length) location.href = visible[Math.floor(Math.random()*visible.length)].querySelector('a')!.href;});
+filter();
+</script>

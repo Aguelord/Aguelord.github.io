@@ -1,0 +1,14 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import {projects, projectHref, href, date} from '../../lib/projects';
+export function getStaticPaths(){ return projects.map(project=>({params:{id:project.id},props:{project}})); }
+const {project:p} = Astro.props;
+const incoming = projects.flatMap(other=>other.relations.filter(r=>r.project===p.id).map(r=>({other,type:r.type})));
+---
+<Layout title={`${p.title} — L’atelier d’Adrien`} description={p.description || undefined}>
+<article class="detail"><a class="back" href={href('#collection')}>← Toutes les pièces</a><p class="eyebrow">{p.status} / {p.language || 'Exploration'}{p.fork && ' / Fork'}</p><h1>{p.title}</h1><p class="intro">{p.description || 'Cette pièce n’a pas encore de description personnelle.'}</p><div class="actions"><a class="button" href={p.url}>Explorer le dépôt ↗</a>{p.homepage && <a class="text-button" href={p.homepage}>Voir le projet ↗</a>}</div>
+<dl class="facts"><div><dt>Création</dt><dd>{date(p.createdAt)}</dd></div><div><dt>Dernière activité du code</dt><dd>{date(p.updatedAt)}</dd></div><div><dt>Licence</dt><dd>{p.license || 'Non renseignée'}</dd></div></dl>
+{p.topics.length>0 && <div class="tags">{p.topics.map(t=><span>{t}</span>)}</div>}
+{p.note && <section><h2>Notes d’atelier</h2><p class="note">{p.note}</p></section>}
+{(p.relations.length>0 || incoming.length>0) && <section><p class="eyebrow">LES FILS ENTRE LES PIÈCES</p><h2>Connexions</h2><ul class="connections">{p.relations.map(r=><li><span>{r.type} →</span> <a href={projectHref(r.project)}>{projects.find(o=>o.id===r.project)!.title}</a></li>)}{incoming.map(r=><li><a href={projectHref(r.other.id)}>{r.other.title}</a> <span>→ {r.type} → cette pièce</span></li>)}</ul></section>}
+</article></Layout>
