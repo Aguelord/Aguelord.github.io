@@ -48,6 +48,12 @@ Ce dossier est livré localement : aucun dépôt distant ni déploiement n’a e
 
 La page `/studio/` intègre le lecteur artiste officiel d’Adrien Vet, obtenu via Spotify oEmbed. Son adresse est conservée dans `src/data/music.json`. Aucun compte développeur ni secret n’est nécessaire. Le lecteur tiers n’est créé qu’après un clic ; le lien vers Spotify reste disponible sans JavaScript ou si le lecteur est bloqué. Il s’agit de la sélection proposée par le lecteur artiste Spotify, pas d’un import exhaustif de la discographie. Les fiches individuelles et la synchronisation du catalogue ne sont pas encore implémentées.
 
+## Discothèque
+
+La page `/studio/discotheque/` présente la collection de vinyles tenue avec MyVinyles. `pnpm sync` lit le `vinyl_data.json` publié par ce projet (adresse dans `site.config.json`, clé `vinyles`) et écrit l’instantané `src/data/vinyles.json`, à ne pas modifier manuellement. Un échec laisse la collection précédente intacte. Les pochettes restent hébergées par le site de MyVinyles ; un disque dessiné remplace celles qui manquent.
+
+Une fiche peut proposer des liens internes via la clé éditoriale `links`, par exemple `[{"label": "Voir la discothèque", "path": "studio/discotheque/"}]`.
+
 ## Périmètre de cette première version
 
 Accueil responsive, catalogue, recherche et filtre locaux, découverte aléatoire, fiches, liens éditoriaux dans les deux sens, studio avec lecteur Spotify à la demande. Navigation et contenu éditorial accessibles sans JavaScript. Pas de police distante ; Spotify se charge uniquement après activation du lecteur. Les README ne sont pas encore importés ; le bouton de chaque fiche permet de les consulter sur GitHub. Les contenus de thèse et articles seront ajoutés dans une prochaine étape.

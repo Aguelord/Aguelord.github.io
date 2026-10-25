@@ -1,0 +1,61 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import collection from '../../data/vinyles.json';
+import {projects, projectHref, href, date} from '../../lib/projects';
+const records = collection.records;
+const genres = [...new Set(records.map(r=>r.genre).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'fr'));
+const years = records.map(r=>r.year).filter((y): y is number => y !== null);
+const tones = ['#aa4528','#293e32','#c79a3b','#5d7a8c','#8a5a7a','#6f8a4e','#b8735a','#3f5f5a','#9c8b5e','#4d4a6b'];
+const tone = (genre: string) => tones[Math.max(0, genres.indexOf(genre)) % tones.length];
+const project = projects.find(p=>p.id==='myvinyles');
+const origin = new URL('./', collection.source).href;
+---
+<Layout title="La discothèque — L’atelier d’Adrien" description="La collection de vinyles d’Adrien : ce qui tourne sur la platine, de Keith Jarrett à Michel Legrand.">
+<section class="disco-intro"><a class="back" href={href('studio/')}>← Le studio</a><p class="eyebrow">LE STUDIO / DISCOTHÈQUE</p><h1>Ce qui tourne<br/><em>sur la platine.</em></h1><p class="intro">Ma collection de vinyles, cataloguée avec MyVinyles : un petit outil en Julia qui retrouve chaque disque à partir de son code-barre.</p>
+<p class="stats"><span>{records.length} disques</span><span>{genres.length} genres</span>{years.length>0 && <span>de {Math.min(...years)} à {Math.max(...years)}</span>}</p>
+<div class="actions">{project && <a class="text-button" href={projectHref(project.id)}>L’outil derrière la collection ↗</a>}<a class="text-button" href={origin}>Le site d’origine ↗</a></div></section>
+<section class="crate" aria-labelledby="crate-title"><h2 id="crate-title" class="visually-hidden">Les disques</h2>
+<div id="disco-controls" class="controls" hidden><label class="search">Chercher un disque<input id="disco-search" type="search" placeholder="Un artiste, un album, un label…"/></label><label>Genre<select id="disco-genre"><option value="">Tous les genres</option>{genres.map(g=><option>{g}</option>)}</select></label><label>Ordre<select id="disco-sort"><option value="recent">Dernières entrées</option><option value="artist">Artiste</option><option value="year">Année</option></select></label></div>
+<p id="disco-count" class="muted" aria-live="polite"></p>
+<ol class="records">{records.map(r=><li class="record" data-id={r.id} data-artist={r.artist} data-year={r.year ?? ''} data-genre={r.genre} data-search={`${r.artist} ${r.album} ${r.label} ${r.genre} ${r.giftedBy}`.toLowerCase()} style={`--tone:${tone(r.genre)}`}>
+<div class="sleeve">{r.cover ? <img src={r.cover} alt={`Pochette de ${r.album}`} loading="lazy" decoding="async" width="300" height="300"/> : <div class="disc" aria-hidden="true"><span>{r.artist}</span></div>}</div>
+<p class="artist">{r.artist}</p><h3>{r.album}</h3><p class="meta">{[r.year, r.genre, r.format].filter(Boolean).join(' · ')}</p>
+{r.notes && <p class="notes">{r.notes}</p>}
+{r.giftedBy && <p class="gift">Offert par {r.giftedBy}</p>}</li>)}</ol>
+{!records.length && <p>La collection apparaîtra après la première synchronisation.</p>}
+<p id="disco-empty" hidden>Aucun disque ne correspond à cette recherche.</p>
+<p class="sync">Collection mise à jour le {date(collection.syncedAt)} · Données de MyVinyles</p></section>
+</Layout>
+<script>
+const controls = document.querySelector<HTMLElement>('#disco-controls')!;
+controls.hidden = false;
+const search = document.querySelector<HTMLInputElement>('#disco-search')!;
+const genre = document.querySelector<HTMLSelectElement>('#disco-genre')!;
+const sort = document.querySelector<HTMLSelectElement>('#disco-sort')!;
+const list = document.querySelector<HTMLElement>('.records')!;
+const items = [...list.querySelectorAll<HTMLElement>('.record')];
+const orders: Record<string, (a: HTMLElement, b: HTMLElement) => number> = {
+ recent: (a,b) => +b.dataset.id! - +a.dataset.id!,
+ artist: (a,b) => a.dataset.artist!.localeCompare(b.dataset.artist!, 'fr'),
+ year: (a,b) => (+a.dataset.year! || 9999) - (+b.dataset.year! || 9999)
+};
+const update = () => {
+ const query = search.value.toLocaleLowerCase().trim();
+ items.forEach(r => r.hidden = !(r.dataset.search!.includes(query) && (!genre.value || r.dataset.genre === genre.value)));
+ list.append(...[...items].sort(orders[sort.value]));
+ const count = items.filter(r=>!r.hidden).length;
+ document.querySelector('#disco-count')!.textContent = `${count} disque${count > 1 ? 's' : ''}`;
+ document.querySelector<HTMLElement>('#disco-empty')!.hidden = count > 0;
+};
+search.addEventListener('input',update); genre.addEventListener('change',update); sort.addEventListener('change',update);
+update();
+</script>
+<style>
+.disco-intro{padding:45px 0 40px}.disco-intro .actions{margin-top:8px}.stats{display:flex;flex-wrap:wrap;gap:10px 28px;font:12px Consolas,monospace;letter-spacing:.6px;color:var(--accent);margin:28px 0 0}.visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+.crate{border-top:1px solid var(--line);padding-bottom:70px}.records{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:34px 22px}.record{min-width:0}
+.sleeve{aspect-ratio:1;background:#eaece0;border:1px solid var(--line);overflow:hidden;margin-bottom:16px;transition:transform .18s}.record:hover .sleeve{transform:translateY(-3px) rotate(-1deg)}.sleeve img{display:block;width:100%;height:100%;object-fit:cover}
+.disc{width:100%;height:100%;display:grid;place-items:center;background:radial-gradient(circle at 50% 50%,#f4f1e9 0 1.6%,var(--tone) 1.7% 17%,#1d221e 17.5% 19%,#2a302b 19.5%,#1d221e 20%,#2a302b 24%,#1d221e 25%,#2a302b 31%,#1d221e 32%,#2a302b 39%,#1d221e 40%,#2a302b 46.5%,#1d221e 47.5% 49.5%,transparent 50%),#eaece0}
+.disc span{font:9px Consolas,monospace;letter-spacing:.5px;color:#f4f1e9;max-width:26%;text-align:center;line-height:1.25;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;transform:translateY(calc(-50% - 7px))}
+.artist{font:11px Consolas,monospace;letter-spacing:.5px;color:#6b7468;margin:0 0 6px;overflow-wrap:anywhere}.record h3{font-family:Georgia,serif;font-weight:400;font-size:18px;line-height:1.3;margin:0 0 8px;overflow-wrap:anywhere}.meta{font-size:12px;color:#596358;margin:0}.notes{font-size:12px;line-height:1.6;color:#687264;margin:8px 0 0;font-style:italic}.gift{display:inline-block;margin:10px 0 0;padding:5px 8px;background:#e6e9dc;font:10px Consolas,monospace;color:#28392f}
+@media(max-width:1000px){.records{grid-template-columns:repeat(3,minmax(0,1fr))}}@media(max-width:800px){.records{grid-template-columns:repeat(2,minmax(0,1fr));gap:28px 16px}}@media(max-width:520px){.record h3{font-size:16px}}@media(prefers-reduced-motion:reduce){.sleeve{transition:none}.record:hover .sleeve{transform:none}}
+</style>

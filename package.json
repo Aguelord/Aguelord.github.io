@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "astro dev --host 127.0.0.1",
-    "sync": "node scripts/sync-github.mjs",
+    "sync": "node scripts/sync-github.mjs && node scripts/sync-vinyles.mjs",
     "build": "astro build",
     "test": "node --test",
     "preview": "astro preview --host 127.0.0.1"

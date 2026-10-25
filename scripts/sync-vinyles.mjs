@@ -1,0 +1,10 @@
+import { readFile, writeFile, rename } from 'node:fs/promises';
+import { fetchVinyls } from './vinyles.mjs';
+const root = new URL('../', import.meta.url);
+const config = JSON.parse(await readFile(new URL('site.config.json', root), 'utf8'));
+const collection = await fetchVinyls(config.vinyles);
+const target = new URL('src/data/vinyles.json', root);
+const temporary = new URL('src/data/vinyles.json.tmp', root);
+await writeFile(temporary, JSON.stringify({syncedAt: new Date().toISOString(), source: config.vinyles, ...collection}, null, 2) + '\n');
+await rename(temporary, target);
+console.log(`${collection.records.length} vinyles synchronisés.`);

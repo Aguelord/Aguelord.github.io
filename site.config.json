@@ -2,5 +2,6 @@
   "githubUser": "Aguelord",
   "title": "L’atelier d’Adrien",
   "includeForks": true,
-  "exclude": []
+  "exclude": [],
+  "vinyles": "https://aguelord.github.io/MyVinyles/vinyl_data.json"
 }

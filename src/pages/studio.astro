@@ -1,6 +1,8 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import music from '../data/music.json';
+import vinyles from '../data/vinyles.json';
+import {href} from '../lib/projects';
 ---
 <Layout title="Le studio — L’atelier d’Adrien" description="Les compositions personnelles d’Adrien Vet. Une autre pièce de l’atelier, à écouter sur Spotify.">
 <section class="studio-intro"><p class="eyebrow">LE DEUXIÈME TIROIR / MUSIQUE</p><h1>Les idées prennent<br/><em>une autre forme.</em></h1><p class="intro">Mes compositions personnelles, réunies sous le nom de {music.artist}. Bienvenue dans la partie sonore de l’atelier.</p></section>
@@ -10,6 +12,8 @@ import music from '../data/music.json';
 <p id="player-status" class="player-notice" role="status"></p>
 <button id="retry-spotify" class="text-button" hidden>Réessayer le chargement ↻</button>
 <p class="player-notice">Si le lecteur ne s’affiche pas, utilisez le lien Spotify. L’écoute disponible dépend de Spotify et de votre connexion à ce service.</p></div></section>
+<section class="record-shelf" aria-labelledby="shelf-title"><div><p class="eyebrow">DE L’AUTRE CÔTÉ DE LA PLATINE</p><h2 id="shelf-title">La discothèque<span class="count">{vinyles.records.length}</span></h2><p class="listening-copy">Les disques que j’écoute, ceux qu’on m’a offerts, et ce qu’ils racontent d’un goût en train de se faire.</p><a class="button" href={href('studio/discotheque/')}>Feuilleter les vinyles <span>↗</span></a></div>
+<ul class="shelf-preview" aria-hidden="true">{vinyles.records.slice(0,5).map(r=><li title={`${r.artist} — ${r.album}`}>{r.cover ? <img src={r.cover} alt="" loading="lazy" decoding="async" width="120" height="120"/> : <span class="mini-disc"></span>}</li>)}</ul></section>
 </Layout>
 <script>
 const button = document.querySelector<HTMLButtonElement>('#load-spotify')!;
@@ -66,5 +70,6 @@ retry.addEventListener('click', loadPlayer);
 </script>
 <style>
 #spotify-stage{position:relative;min-height:352px}#spotify-loading{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;border:1px dashed #aebba5;background:#eaece0}#spotify-loading p{margin:15px 0 8px}#spotify-loading small{line-height:1.7;color:#596358}.loading-symbol{font-size:42px;color:var(--accent);animation:turn 2s linear infinite}@keyframes turn{to{transform:rotate(360deg)}}@media(prefers-reduced-motion:reduce){.loading-symbol{animation:none}}
-.studio-intro{padding:72px 0 45px}.listening-room{display:grid;grid-template-columns:1fr 1.3fr;gap:45px;border-top:1px solid var(--line);padding:40px 0 80px;align-items:start}.listening-copy{line-height:1.8;color:#596358;max-width:300px}.player-space{min-width:0;padding:24px;background:#eaece0;border:1px solid var(--line)}#player-placeholder{min-height:260px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}.sound-lines{font-size:clamp(19px,3vw,35px);color:var(--accent);letter-spacing:3px}.player-notice{font-size:12px;line-height:1.7;color:#596358}.player-space :global(iframe){display:block;border:0;border-radius:12px}@media(max-width:800px){.listening-room{grid-template-columns:1fr;gap:25px}.studio-intro{padding-top:45px}.player-space{padding:14px}}
+.studio-intro{padding:72px 0 45px}.listening-room{display:grid;grid-template-columns:1fr 1.3fr;gap:45px;border-top:1px solid var(--line);padding:40px 0 80px;align-items:start}.listening-copy{line-height:1.8;color:#596358;max-width:300px}.player-space{min-width:0;padding:24px;background:#eaece0;border:1px solid var(--line)}#player-placeholder{min-height:260px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}.sound-lines{font-size:clamp(19px,3vw,35px);color:var(--accent);letter-spacing:3px}.player-notice{font-size:12px;line-height:1.7;color:#596358}.player-space :global(iframe){display:block;border:0;border-radius:12px}.record-shelf{display:grid;grid-template-columns:1fr 1.3fr;gap:45px;align-items:center;border-top:1px solid var(--line);padding:40px 0 80px}.shelf-preview{list-style:none;margin:0;padding:0;display:flex}.shelf-preview li{flex:1;min-width:0;aspect-ratio:1;margin-left:-6%;border:1px solid var(--line);background:#eaece0;box-shadow:-6px 0 12px #28392f1f}.shelf-preview li:first-child{margin-left:0}.shelf-preview li:nth-child(odd){transform:rotate(-2deg)}.shelf-preview li:nth-child(even){transform:rotate(1.5deg) translateY(6px)}.shelf-preview img{display:block;width:100%;height:100%;object-fit:cover}.mini-disc{display:block;height:100%;background:radial-gradient(circle,#f4f1e9 0 2%,var(--accent) 2.5% 17%,#1d221e 18% 24%,#2a302b 25% 33%,#1d221e 34% 41%,#2a302b 42% 49%,transparent 50%)}
+@media(max-width:800px){.listening-room,.record-shelf{grid-template-columns:1fr;gap:25px}.studio-intro{padding-top:45px}.player-space{padding:14px}}
 </style>

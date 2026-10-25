@@ -1,11 +1,12 @@
 import snapshot from '../data/github.json';
 import annotations from '../data/editorial.json';
-type Editorial = {title?:string; description?:string; status?:string; note?:string; relations?:{project:string;type:string}[]};
+type Editorial = {title?:string; description?:string; status?:string; note?:string; relations?:{project:string;type:string}[]; links?:{label:string;path:string}[]};
 const editorial = annotations as Record<string, Editorial>;
 export const projects = snapshot.projects.map(p => ({...p, ...editorial[p.id],
   title: editorial[p.id]?.title || p.name,
   status: editorial[p.id]?.status || (p.archived ? 'Archivé' : 'À explorer'),
-  relations: editorial[p.id]?.relations || []
+  relations: editorial[p.id]?.relations || [],
+  links: editorial[p.id]?.links || []
 }));
 for (const p of projects) for (const r of p.relations) {
   if (!projects.some(other => other.id === r.project)) throw new Error(`Connexion introuvable : ${p.id} → ${r.project}`);
