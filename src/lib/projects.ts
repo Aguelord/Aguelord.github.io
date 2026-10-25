@@ -1,8 +1,13 @@
 import snapshot from '../data/github.json';
 import annotations from '../data/editorial.json';
-type Editorial = {title?:string; description?:string; status?:string; note?:string; relations?:{project:string;type:string}[]; links?:{label:string;path:string}[]};
+type Editorial = {title?:string; description?:string; status?:string; note?:string; relations?:{project:string;type:string}[]; links?:{label:string;path:string}[];
+  manual?:{language?:string; createdAt:string; updatedAt:string}};
 const editorial = annotations as Record<string, Editorial>;
-export const projects = snapshot.projects.map(p => ({...p, ...editorial[p.id],
+// Pièces sans dépôt public : décrites à la main tant que la synchronisation ne les connaît pas.
+const manual = Object.entries(editorial).filter(([id, e]) => e.manual && !snapshot.projects.some(p => p.id === id))
+  .map(([id, e]) => ({id, name: e.title || id, description: '', url: null as string | null, homepage: null, language: e.manual!.language || null, topics: [] as string[],
+    createdAt: e.manual!.createdAt, updatedAt: e.manual!.updatedAt, archived: false, fork: false, stars: 0, forks: 0, license: null}));
+export const projects = [...snapshot.projects, ...manual].sort((a,b) => b.updatedAt.localeCompare(a.updatedAt)).map(p => ({...p, ...editorial[p.id],
   title: editorial[p.id]?.title || p.name,
   status: editorial[p.id]?.status || (p.archived ? 'Archivé' : 'À explorer'),
   relations: editorial[p.id]?.relations || [],

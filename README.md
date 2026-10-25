@@ -54,6 +54,8 @@ La page `/studio/discotheque/` présente la collection de vinyles tenue avec MyV
 
 Une fiche peut proposer des liens internes via la clé éditoriale `links`, par exemple `[{"label": "Voir la discothèque", "path": "studio/discotheque/"}]`.
 
+Un projet dont le dépôt est privé peut figurer au catalogue grâce à la clé éditoriale `manual` (`language`, `createdAt`, `updatedAt`). La fiche s’affiche alors sans lien vers le dépôt. Dès que le dépôt devient public, la synchronisation GitHub prend le relais et `manual` est ignorée.
+
 ## Périmètre de cette première version
 
 Accueil responsive, catalogue, recherche et filtre locaux, découverte aléatoire, fiches, liens éditoriaux dans les deux sens, studio avec lecteur Spotify à la demande. Navigation et contenu éditorial accessibles sans JavaScript. Pas de police distante ; Spotify se charge uniquement après activation du lecteur. Les README ne sont pas encore importés ; le bouton de chaque fiche permet de les consulter sur GitHub. Les contenus de thèse et articles seront ajoutés dans une prochaine étape.

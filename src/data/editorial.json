@@ -4,6 +4,7 @@
     "description": "Un petit outil en Julia pour cataloguer ma collection de vinyles : on scanne le code-barre, il retrouve le disque et sa pochette, puis publie la collection en ligne.",
     "status": "En service",
     "note": "Un menu interactif dans le terminal pour ajouter, modifier, rechercher ou retirer un disque.\nLes informations viennent de MusicBrainz, puis de Discogs en secours ; les pochettes sont téléchargées automatiquement.\nChaque modification est exportée en JSON et poussée sur GitHub Pages. La discothèque de l’atelier lit ce même fichier.",
-    "links": [{"label": "Voir la discothèque", "path": "studio/discotheque/"}]
+    "links": [{"label": "Voir la discothèque", "path": "studio/discotheque/"}],
+    "manual": {"language": "Julia", "createdAt": "2025-10-23T19:17:01Z", "updatedAt": "2026-02-07T18:09:22Z"}
   }
 }
