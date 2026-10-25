@@ -243,7 +243,7 @@ function pick(now) {
   if (now - lastRay < 100 || !controls.isLocked) return;
   lastRay = now;
   ray.setFromCamera(new THREE.Vector2(0, 0), camera);
-  const hit = ray.intersectObjects(scene.children, true).find(h => !/^Texte/.test(h.object.name));
+  const hit = ray.intersectObjects(scene.children, true).find(h => h.object.isMesh && !/^Texte/.test(h.object.name));
   hovered = hit ? targetOf(hit.object) : null;
   $('#hint').textContent = hovered ? hovered.label : '';
 }
