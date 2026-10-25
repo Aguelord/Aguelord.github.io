@@ -21,6 +21,7 @@ canvas{display:block}
 #intro .go{display:inline-block;margin-top:14px;background:var(--green);color:#fff;padding:14px 18px;font-size:13px}
 #resume{position:fixed;inset:0;z-index:5;cursor:pointer;display:grid;place-items:center}
 #resume span{background:var(--paper);padding:12px 16px;font-size:13px;border-left:3px solid var(--rust);box-shadow:0 6px 24px #0005}
+body.night::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:3;background:radial-gradient(ellipse at center,transparent 50%,#000b 100%)}
 #crosshair{position:fixed;left:50%;top:50%;width:6px;height:6px;margin:-3px;border-radius:50%;background:#fffa;box-shadow:0 0 0 1px #0005;pointer-events:none}
 #hint{position:fixed;left:50%;top:calc(50% + 22px);transform:translateX(-50%);background:var(--paper);padding:7px 11px;font-size:12px;pointer-events:none;border-left:2px solid var(--rust)}
 #hint:empty{display:none}
@@ -61,7 +62,7 @@ window.onSpotifyIframeApiReady = api => { window.SpotifyIFrameAPI = api; dispatc
 <div id="intro"><div class="box">
   <p class="mono">● LABORATOIRE HYBRIDE / 001</p>
   <h1>L’atelier<br><em>d’Adrien</em></h1>
-  <p><kbd>Z Q S D</kbd> / <kbd>W A S D</kbd> ou flèches pour marcher, souris pour regarder. <kbd>Espace</kbd> pour sauter, <kbd>Maj</kbd> maintenu pour s’accroupir, <kbd>E</kbd> maintenu pour courir.</p>
+  <p><kbd>Z Q S D</kbd> / <kbd>W A S D</kbd> ou flèches pour marcher, souris pour regarder. <kbd>Espace</kbd> pour sauter, <kbd>Maj</kbd> maintenu pour s’accroupir, <kbd>E</kbd> maintenu pour courir, <kbd>L</kbd> pour changer d’ambiance (nuit / jour).</p>
   <p>Visez le <b>jukebox</b> du studio et cliquez pour choisir un disque. Les tiroirs, les fiches, le tableau et la porte mènent aussi quelque part.</p>
   <p><kbd>Échap</kbd> libère la souris.</p>
   <span class="go">Entrer dans l’atelier ↗</span>
@@ -94,6 +95,8 @@ renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.setSize(innerWidth, innerHeight);
 renderer.toneMapping = THREE.AgXToneMapping;
 renderer.toneMappingExposure = 1.1;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 document.body.prepend(renderer.domElement);
 
 const scene = new THREE.Scene();
@@ -105,15 +108,52 @@ scene.environmentIntensity = 0.45;
 const camera = new THREE.PerspectiveCamera(70, innerWidth / innerHeight, 0.05, 50);
 camera.position.set(0, 1.65, 1.9);
 
-scene.add(new THREE.HemisphereLight(0xfff3e0, 0x8a6a4a, 0.9));
+// Deux ambiances : « nuit » (mélancolique, par défaut) et « jour » ; touche L pour basculer
+const day = new THREE.Group(), night = new THREE.Group();
+scene.add(day, night);
 const warm = 0xffe6c7;
+day.add(new THREE.HemisphereLight(0xfff3e0, 0x8a6a4a, 0.9));
 for (const x of [-1.5, 1.5]) {
-  const l = new THREE.PointLight(warm, 5, 0, 2); l.position.set(x, 2.3, 0); scene.add(l);
+  const l = new THREE.PointLight(warm, 5, 0, 2); l.position.set(x, 2.3, 0); day.add(l);
 }
-const pendant = new THREE.PointLight(0xffdcae, 2.5, 0, 2); pendant.position.set(0, 2.1, -0.2); scene.add(pendant);
+const pendant = new THREE.PointLight(0xffdcae, 2.5, 0, 2); pendant.position.set(0, 2.1, -0.2); day.add(pendant);
 const board = new THREE.SpotLight(warm, 18, 0, 0.9, 0.6, 2); board.position.set(0, 2.6, -1.4); board.target.position.set(0, 1.6, -2.5);
-scene.add(board, board.target);
+day.add(board, board.target);
+
+function spot(group, color, intensity, pos, target, angle, shadow) {
+  const l = new THREE.SpotLight(color, intensity, 0, angle, 0.75, 2);
+  l.position.set(...pos); l.target.position.set(...target);
+  if (shadow) { l.castShadow = true; l.shadow.mapSize.set(1024, 1024); l.shadow.bias = -0.0005; l.shadow.radius = 4; }
+  group.add(l, l.target);
+  return l;
+}
+night.add(new THREE.HemisphereLight(0x5d6f8c, 0x15110e, 0.14));
+spot(night, 0xffc48a, 11, [0, 2.08, -0.2], [0, 0, -0.2], 0.8, true);            // suspension au-dessus de la FIG. 01
+spot(night, 0xffb877, 5, [-2.34, 1.12, -0.28], [-2.62, 0.75, -0.9], 0.9, true); // lampe d'architecte sur l'établi
+spot(night, 0x8fa6c8, 6, [0.4, 2.7, 1.2], [-0.2, 1.4, -2.5], 0.45, false);      // lueur froide sur le tableau
+const screenGlow = new THREE.PointLight(0x9fd3a5, 0.35, 3, 2); screenGlow.position.set(-2.6, 1.08, -0.9); night.add(screenGlow);
+const moon = new THREE.DirectionalLight(0x8ea4c8, 0.18); moon.position.set(2, 3, 4); night.add(moon);
+
+// Poussière en suspension
+const dust = new THREE.Points(
+  new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(
+    Array.from({length: 600 * 3}, (_, i) => (Math.random() - 0.5) * [5.6, 2.6, 4.6][i % 3] + [0, 1.35, 0][i % 3]), 3)),
+  new THREE.PointsMaterial({color: 0xffe2b8, size: 0.006, transparent: true, opacity: 0.3, depthWrite: false}));
+night.add(dust);
+
 const glow = new THREE.PointLight(0xffa860, 1.2, 0, 2); glow.position.set(2.25, 1.1, 0.33); scene.add(glow);
+const fog = new THREE.FogExp2(0x0d1216, 0.15);
+let melancholy = true;
+function ambiance() {
+  day.visible = !melancholy; night.visible = melancholy;
+  scene.fog = melancholy ? fog : null;
+  scene.background = new THREE.Color(melancholy ? '#0b0f12' : '#1c241f');
+  scene.environmentIntensity = melancholy ? 0.06 : 0.45;
+  renderer.toneMappingExposure = melancholy ? 0.95 : 1.1;
+  document.body.classList.toggle('night', melancholy);
+}
+ambiance();
+addEventListener('keydown', e => { if (e.code === 'KeyL') { melancholy = !melancholy; ambiance(); } });
 
 addEventListener('resize', () => {
   camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix();
@@ -133,6 +173,8 @@ new GLTFLoader().load('atelier.glb', gltf => {
   gltf.scene.traverse(o => {
     if (!o.isMesh) return;
     if (o.material?.name === 'Néon') neon = o.material;
+    o.receiveShadow = true;
+    o.castShadow = !/^(Abat|Ampoule|Fil|Néon|Texte|Mur|Plafond|Sol|Tapis)/.test(o.name);
     if (/^(Disque_jukebox|Macaron)/.test(o.name) || o.name === 'Disque') spinners.push(o);
     if (PASSABLE.test(o.name)) return;
     const b = new THREE.Box3().setFromObject(o);
@@ -287,6 +329,8 @@ renderer.setAnimationLoop(now => {
   const target = playing ? 1 : 0;
   for (const s of spinners) s.rotateY(-dt * 3.5 * target);
   if (neon) neon.emissiveIntensity = playing ? 5 + 1.5 * Math.sin(now / 180) : 4;
+  dust.rotation.y += dt * 0.01;
+  dust.position.y = Math.sin(now / 4000) * 0.05;
   glow.intensity = playing ? 2 + 0.6 * Math.sin(now / 180) : 1.2;
   renderer.render(scene, camera);
 });
